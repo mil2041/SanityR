@@ -1,0 +1,180 @@
+#' Estimate gene-level expression using the Sanity model
+#'
+#' This function provides a user-friendly interface to the Sanity model for
+#' gene expression analysis.
+#'
+#' @param x A numeric matrix of counts where features are rows and columns are cells.
+#'
+#' Alternatively, a \linkS4class{SummarizedExperiment} or a
+#' \linkS4class{SingleCellExperiment} containing such counts.
+#' @param vmin The minimum value for the gene-level variance (must be > 0).
+#' @param vmax The maximum value for the gene-level variance.
+#' @param nbin Number of variance bins to use.
+#' @param a,b Gamma prior parameter (see Details).
+#' @param assay.type A string specifying the assay of `x` containing the count matrix.
+#' @param size.factors A numeric vector of cell-specific size factors.
+#' Alternatively `NULL`, in which case the size factors are computed from `x`.
+#' @param name String containing an assay name for storing the output normalized values.
+#' @param subset.row A vector specifying the subset of rows of `x` to process.
+#' @param BPPARAM A \linkS4class{BiocParallelParam} object specifying whether
+#' the calculations should be parallelized.
+#' @param ... For the generic, further arguments to pass to each method.
+#'
+#' For the `SummarizedExperiment` method, further arguments to pass to the `ANY`
+#' method.
+#'
+#' For the `SingleCellExperiment` method, further arguments to pass to the
+#' `SummarizedExperiment` method.
+#'
+#' @return
+#' For `matrix`-like object it returns a named list with the following elements
+#' (symbols as defined in the Supplementary Text of the publication):
+#' \describe{
+#'   \item{mu}{Posterior mean of log expression across cells \eqn{\mu_g}.}
+#'   \item{var_mu}{Posterior variance of the mean expression \eqn{\left(\delta \mu_g\right)^2}.}
+#'   \item{var}{Posterior variance of expression across cells \eqn{\langle v_g \rangle}.}
+#'   \item{delta}{Vector of log fold-changes for each cell relative to \eqn{\delta_{gc}}.}
+#'   \item{var_delta}{Posterior variance of the cell-level fold-changes \eqn{\epsilon_{gc}^2}.}
+#'   \item{lik}{Normalized likelihood across the evaluated variance grid \eqn{P\left(v_g \mid n_g \right)} for diagnostics.}
+#' }
+#'
+#' If called on a \linkS4class{SingleCellExperiment} or \linkS4class{SummarizedExperiment}
+#' it appends the following columns to the `rowData` slot:
+#' \describe{
+#'   \item{sanity_log_activity_mean}{`mu`}
+#'   \item{sanity_log_activity_mean_sd}{`sqrt(var_mu)`}
+#'   \item{sanity_activity_sd}{`sqrt(var)`}
+#' }
+#' and appends the following assays (assuming `name = "logcounts"`):
+#' \describe{
+#'   \item{assay(x, "logcounts")}{`mu + delta`}
+#'   \item{assay(x, "logcounts_sd")}{`sqrt(var_mu + var_delta)`}
+#' }
+#'
+#' @details
+#'
+#' The method models gene activity using a Bayesian framework, assuming
+#' a Gamma prior on expression and integrating over cell-level variability.
+#' It returns posterior estimates for mean expression (`mu`), cell-specific
+#' deviations (`delta`), and their variances, as well as expression variance
+#' (`var`). *Expected* log-normalized counts are computed by combining mean
+#' expression and cell-specific log-fold changes. The *standard deviation* of
+#' log-counts is computed by summing the variances of the components.
+#'
+#' If not `size.factors` are provided, they are calculated so that all cells
+#' have the same library size `mean(colSums(x))`.
+#'
+#' ## Gamma Prior:
+#'
+#' The model adopts a Bayesian framework by placing a Gamma prior `Gamma(a, b)`
+#' over the gene activity, where `a` is the shape and `b` the rate parameter,
+#' respectively. This allows for flexible regularization and uncertainty
+#' modeling. The posterior likelihood is estimated by integrating over possible
+#' values of the variance in expression.
+#'
+#' Intuitively:
+#' \itemize{
+#'   \item `a` acts as a pseudo-count added to the total count of the gene.
+#'   \item `b` acts as a pseudo-count penalizing deviations from the average.
+#'   expression — i.e., it regularizes the total number of UMIs that differ from
+#'   the expected value.
+#' }
+#'
+#' Setting `a = 1` and `b = 0` corresponds to an uninformative (uniform) prior,
+#' which was used in the original Sanity model publication.
+#'
+#' @references
+#' Breda, J., Zavolan, M., & van Nimwegen, E. (2021).
+#' Bayesian inference of gene expression states from single-cell RNA-seq data.
+#' *Nature Biotechnology*, 39, 1008–1016. \url{https://doi.org/10.1038/s41587-021-00875-x}
+#'
+#' @name Sanity
+NULL
+
+#' @export
+#' @rdname Sanity
+setGeneric("Sanity", function(x, ...) standardGeneric("Sanity"))
+
+#' @export
+#' @rdname Sanity
+#' @importFrom BiocParallel bplapply SerialParam
+setMethod("Sanity", "ANY", function(x, size.factors = NULL,
+                                    vmin = 0.001, vmax = 50, nbin = 160L,
+                                    a = 1, b = 0, BPPARAM = SerialParam()) {
+    stopifnot("Minimum variance must be positive" = vmin > 0)
+    stopifnot("Maximum variance must be greater than the minimum" = vmax > vmin)
+    stopifnot("Both Gamma parameters must be positive" = a >= 0 & b >= 0)
+
+    # Extract matrix stats
+    C <- ncol(x)
+    G <- nrow(x)
+    mean_cell_size <- mean(colSums(x))
+
+    # Compute cell_sizes: N_c
+    if (is.null(size.factors))
+        size.factors <- rep(1, C)
+    cell_size <- mean_cell_size * size.factors
+
+    # Parallel processing over genes
+    results <- bplapply(
+        seq_len(G),
+        function(g) get_gene_expression_level(
+            counts = x[g, ],
+            cell_size = cell_size,
+            vmin = vmin,
+            vmax = vmax,
+            numbin = nbin,
+            a = a, b = b
+        ),
+        BPPARAM = BPPARAM
+    )
+
+    list(
+        # Gene-metrics: Vector(G)
+        mu = vapply(results, "[[", 0, "mu"),
+        var_mu = vapply(results, "[[", 0, "var_mu"),
+        var = vapply(results, "[[", 0, "var"),
+        # Cell-specific: Matrix(G, C)
+        delta = t(vapply(results, "[[", rep(0, C), "delta")),
+        var_delta = t(vapply(results, "[[", rep(0, C), "var_delta")),
+        # Variance Likelihood: Matrix(G, nbin)
+        likelihood = t(vapply(results, "[[", rep(0, nbin), "lik"))
+    )
+})
+
+#' @export
+#' @rdname Sanity
+#' @importFrom S4Vectors DataFrame
+#' @importFrom SummarizedExperiment rowData "rowData<-" assay "assay<-"
+#' @importFrom scuttle .subset2index
+#' @importClassesFrom SummarizedExperiment SummarizedExperiment
+setMethod("Sanity", "SummarizedExperiment", function(x, ...,
+                                                     assay.type = "counts",
+                                                     name = "logcounts",
+                                                     subset.row = NULL) {
+    if (!is.null(subset.row)) {
+        subset.row <- .subset2index(subset.row, x, byrow = TRUE)
+        x <- x[subset.row, ]
+    }
+
+    res <- callNextMethod(x = assay(x, assay.type), ...) # call matrix method on assay
+
+    # Append gene-level metrics to rowData
+    rd <- DataFrame(sanity_log_activity_mean = res[["mu"]],
+                    sanity_log_activity_mean_sd = sqrt(res[["var_mu"]]),
+                    sanity_activity_sd = sqrt(res[["var"]]))
+    rowData(x) <- cbind(rowData(x), rd)
+
+    # Add cell-level metrics as new assays
+    assay(x, name, withDimnames = FALSE) <- with(res, mu + delta)
+    assay(x, paste0(name, "_sd"), withDimnames = FALSE) <- with(res, sqrt(var_mu + var_delta))
+    return(x)
+})
+
+#' @export
+#' @rdname Sanity
+#' @importFrom BiocGenerics sizeFactors
+#' @importClassesFrom SingleCellExperiment SingleCellExperiment
+setMethod("Sanity", "SingleCellExperiment", function(x, size.factors = sizeFactors(x), ...) {
+    callNextMethod(x = x, size.factors = size.factors, ...)
+})
