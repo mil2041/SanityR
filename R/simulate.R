@@ -1,7 +1,7 @@
 #' Simulate SingleCellExperiment Datasets with Independent or Branched Gene Expression Patterns
 #'
-#' These functions generate synthetic single-cell RNA-seq datasets based on the
-#' Bayesian Model defined in Sanity.
+#' These functions generate synthetic single-cell RNA-seq datasets based the
+#' methods described in original Sanity publication for benchmarking.
 #'
 #' @param cell_size Optional vector of real or simulated total UMI counts per cell.
 #'   If `NULL`, defaults to values from the *Baron et al.* study.
@@ -31,9 +31,9 @@
 #' independently for each cell. This results in uncorrelated expression patterns
 #' across the dataset.
 #'
-#' - `simulate_branched_random_walk`: gene expression follows a **branched random walk**
+#' - `simulate_branched_random_walk`: cells follows a **branched random walk**
 #' through gene expression space, producing correlated gene expression patterns
-#' between cells that reflect pseudo-temporal differentiation trajectories.
+#' that reflect pseudo-temporal differentiation trajectories.
 #'
 #' @references
 #' A Single-Cell Transcriptomic Map of the Human and Mouse Pancreas Reveals Inter- and Intra-cell Population Structure
@@ -46,10 +46,6 @@
 #' # Simulate dataset with a branched random walk trajectory
 #' sce_branch <- simulate_branched_random_walk(N_path = 20, length_path = 5, N_gene = 50)
 #'
-#' @importClassesFrom SingleCellExperiment SingleCellExperiment
-#' @importFrom SingleCellExperiment SingleCellExperiment counts
-#' @importFrom SummarizedExperiment "colData<-"
-#' @importFrom S4Vectors DataFrame
 #' @name simulate_sce
 NULL
 
@@ -85,9 +81,13 @@ NULL
          N_gene = N_gene)
 }
 
-# Core simulation logic
-# Shared function that computes normalized logFC, transcription rates, counts, and builds SCE
+#' @importClassesFrom SingleCellExperiment SingleCellExperiment
+#' @importFrom SingleCellExperiment SingleCellExperiment
+#' @importFrom SummarizedExperiment assay
+#' @importFrom S4Vectors DataFrame
 .simulate_sce_core <- function(delta, cell_size, gene_size, ltq_var_rate) {
+    # Core simulation logic
+    # Shared function that computes normalized logFC, transcription rates, counts, and builds SCE
     N_gene <- nrow(delta)
     N_cell <- ncol(delta)
 
@@ -118,7 +118,7 @@ NULL
         colData = col_data
     )
 
-    keep <- rowSums(counts(sce)) > 0
+    keep <- rowSums(assay(sce, "counts")) > 0
     sce <- sce[keep, ]
     return(sce)
 }
@@ -127,50 +127,59 @@ NULL
 simulate_independent_cells <- function(cell_size = NULL, gene_size = NULL,
                                        N_cell = NULL, N_gene = NULL,
                                        ltq_var_rate = 0.5) {
-    args <- .resolve_simulation_inputs(cell_size, gene_size, N_cell, N_gene)
-    with(args, {
-        # Generate random uncorrelated gene expression matrix
-        delta <- matrix(rnorm(N_gene * N_cell), nrow = N_gene)
-        .simulate_sce_core(delta, cell_size, gene_size, ltq_var_rate)
-    })
+    # Parse arguments
+    argv <- .resolve_simulation_inputs(cell_size, gene_size, N_cell, N_gene)
+    N_gene    <- argv[["N_gene"]]
+    gene_size <- argv[["gene_size"]]
+    N_cell    <- argv[["N_cell"]]
+    cell_size <- argv[["cell_size"]]
+
+    # Generate random uncorrelated gene expression matrix
+    delta <- matrix(rnorm(N_gene * N_cell), nrow = N_gene)
+    .simulate_sce_core(delta, cell_size, gene_size, ltq_var_rate)
 }
 
 #' @export
+#' @importFrom SummarizedExperiment colData colData<-
 simulate_branched_random_walk <- function(cell_size = NULL, gene_size = NULL,
                                           N_gene = NULL, ltq_var_rate = 0.5,
                                           N_path = 149L, length_path = 13L) {
-    args <- .resolve_simulation_inputs(cell_size, gene_size, N_path, N_gene, length_path)
-    with(args, {
-        # Generate correlated expression through a branched random walk
-        delta <- matrix(0, nrow = N_gene, ncol = N_cell)
-        predecesor <- integer(N_cell)
-        cell <- 1L
+    # Parse arguments
+    argv <- .resolve_simulation_inputs(cell_size, gene_size, N_path, N_gene, length_path)
+    N_gene    <- argv[["N_gene"]]
+    gene_size <- argv[["gene_size"]]
+    N_cell    <- argv[["N_cell"]]
+    cell_size <- argv[["cell_size"]]
 
-        for (k in seq_len(N_path)) {
-            # Pick parent node
-            if (k == 1L) { # Root
-                predecesor[cell] <- 0L
-                d_0 <- rep(0, N_gene)
-            } else {
-                predecesor[cell] <- sample(cell - 1L, 1L)
-                d_0 <- delta[, predecesor[cell]]
-            }
+    # Generate correlated expression through a branched random walk
+    delta <- matrix(0, nrow = N_gene, ncol = N_cell)
+    predecesor <- integer(N_cell)
+    cell <- 1L
 
-            # Random walk
-            for (i in seq_len(length_path)) {
-                if (i == 1L) {
-                    delta[, cell] <- d_0 + rnorm(N_gene)
-                } else {
-                    predecesor[cell] <- cell - 1L
-                    delta[, cell] <- delta[, predecesor[cell]] + rnorm(N_gene)
-                }
-                cell <- cell + 1L
-            }
+    for (k in seq_len(N_path)) {
+        # Pick parent node
+        if (k == 1L) { # Root
+            predecesor[cell] <- 0L
+            d_0 <- rep(0, N_gene)
+        } else {
+            predecesor[cell] <- sample(cell - 1L, 1L)
+            d_0 <- delta[, predecesor[cell]]
         }
 
-        sce <- .simulate_sce_core(delta, cell_size, gene_size, ltq_var_rate)
-        colData(sce)[["predecesor"]] <- predecesor
+        # Random walk
+        for (i in seq_len(length_path)) {
+            if (i == 1L) {
+                delta[, cell] <- d_0 + rnorm(N_gene)
+            } else {
+                predecesor[cell] <- cell - 1L
+                delta[, cell] <- delta[, predecesor[cell]] + rnorm(N_gene)
+            }
+            cell <- cell + 1L
+        }
+    }
 
-        return(sce)
-    })
+    sce <- .simulate_sce_core(delta, cell_size, gene_size, ltq_var_rate)
+    colData(sce)[["predecesor"]] <- predecesor
+
+    return(sce)
 }

@@ -9,3 +9,5 @@ then sample more densely around that region.
 
 Check if the likelihood is unimodal, and if not, return a warning. The user can
 then rerun it by adapting the range of the search.
+
+## Generalize `calculateSanityDistance` to a generic method?

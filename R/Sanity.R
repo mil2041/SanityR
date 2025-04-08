@@ -61,8 +61,8 @@
 #' expression and cell-specific log-fold changes. The *standard deviation* of
 #' log-counts is computed by summing the variances of the components.
 #'
-#' If not `size.factors` are provided, they are calculated so that all cells
-#' have the same library size `mean(colSums(x))`.
+#' If no `size.factors` are provided, they are assumed all equal so that all
+#' cells have the same library size `mean(colSums(x))`.
 #'
 #' ## Gamma Prior:
 #'
@@ -145,7 +145,7 @@ setMethod("Sanity", "ANY", function(x, size.factors = NULL,
 #' @export
 #' @rdname Sanity
 #' @importFrom S4Vectors DataFrame
-#' @importFrom SummarizedExperiment rowData "rowData<-" assay "assay<-"
+#' @importFrom SummarizedExperiment rowData rowData<- assay assay<-
 #' @importFrom scuttle .subset2index
 #' @importClassesFrom SummarizedExperiment SummarizedExperiment
 setMethod("Sanity", "SummarizedExperiment", function(x, ...,

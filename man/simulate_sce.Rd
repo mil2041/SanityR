@@ -35,17 +35,17 @@ A \code{SingleCellExperiment} object containing:
 }
 }
 \description{
-These functions generate synthetic single-cell RNA-seq datasets based on the
-Bayesian Model defined in Sanity.
+These functions generate synthetic single-cell RNA-seq datasets based the
+methods described in original Sanity publication for benchmarking.
 }
 \details{
 \itemize{
 \item \code{simulate_independent_cells}: gene expression values are generated
 independently for each cell. This results in uncorrelated expression patterns
 across the dataset.
-\item \code{simulate_branched_random_walk}: gene expression follows a \strong{branched random walk}
+\item \code{simulate_branched_random_walk}: cells follows a \strong{branched random walk}
 through gene expression space, producing correlated gene expression patterns
-between cells that reflect pseudo-temporal differentiation trajectories.
+that reflect pseudo-temporal differentiation trajectories.
 }
 }
 \examples{

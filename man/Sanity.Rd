@@ -96,8 +96,8 @@ deviations (\code{delta}), and their variances, as well as expression variance
 expression and cell-specific log-fold changes. The \emph{standard deviation} of
 log-counts is computed by summing the variances of the components.
 
-If not \code{size.factors} are provided, they are calculated so that all cells
-have the same library size \code{mean(colSums(x))}.
+If no \code{size.factors} are provided, they are assumed all equal so that all
+cells have the same library size \code{mean(colSums(x))}.
 \subsection{Gamma Prior:}{
 
 The model adopts a Bayesian framework by placing a Gamma prior \code{Gamma(a, b)}

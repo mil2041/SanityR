@@ -65,8 +65,6 @@
 #' @export
 #' @importFrom scuttle .subset2index
 #' @importFrom SummarizedExperiment assay rowData
-#' @importFrom MatrixGenerics rowVars rowMeans2 colMeans2
-#' @importFrom BiocParallel bpparam bpmapply
 calculateSanityDistance <- function(x,
                                     assay = "logcounts",
                                     assay.sd = "logcounts_sd",
@@ -91,6 +89,8 @@ calculateSanityDistance <- function(x,
     return(dmat)
 }
 
+#' @importFrom MatrixGenerics rowVars rowMeans2 colMeans2
+#' @importFrom BiocParallel bpparam bpmapply
 .calculate_sanity_distance <- function(delta, epsilon, gene_var,
                                        snr_cutoff = 1, nbin = 401L,
                                        BPPARAM = bpparam()) {
