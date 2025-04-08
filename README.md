@@ -1,0 +1,156 @@
+
+# SanityR
+
+**Bayesian Inference and Distance Calculation for Single-Cell RNA-seq
+Data**
+
+SanityR provides an R interface to the [Sanity
+model](https://github.com/jmbreda/Sanity), described in [Breda et
+al. (2021), *Nature
+Biotechnology*](https://doi.org/10.1038/s41587-021-00875-x) for
+single-cell gene expression analysis. It offers tools for:
+
+- Bayesian estimation of log normalized counts and their uncertainty.
+- Computing statistically sound distances between cells while accounting
+  for uncertainty.
+- Integrates with
+  [`SingleCellExperiment`](https://bioconductor.org/packages/SingleCellExperiment/)
+  to be used as part of the [Bioconductor Single Cell
+  Workflow](https://bioconductor.org/books/release/OSCA/)
+
+------------------------------------------------------------------------
+
+## Installation
+
+### GitHub installation
+
+``` r
+remotes::install_github("TeoSakel/SanityR")
+```
+
+## Example
+
+``` r
+library(SanityR)
+
+# Simulate data
+sce <- simulate_branched_random_walk(N_path = 10, length_path = 10, N_gene = 200)
+
+# Run Sanity estimation
+sce <- Sanity(sce)
+
+# Compute distances
+dist <- calculateSanityDistance(sce)
+
+# Perform clustering or visualization
+plot(hclust(dist))
+```
+
+------------------------------------------------------------------------
+
+## Main Functions
+
+### `Sanity()`
+
+``` r
+sce <- Sanity(sce)
+logcounts(sce)
+```
+
+Log-normalizes the UMI counts and estimates error bars for each value
+using a hierarchical Bayesian Model:
+
+$$
+\begin{aligned}
+    n_{gc} &\sim \text{Poisson}(\lambda_c {\alpha_g}e^{\delta_{gc}}) \\
+    \lambda_c &\sim \text{Uniform}(0, \infty) \\
+    \alpha_g &\sim \text{Gamma}(a, b) \\
+    \delta_{gc} &\sim \text{Normal}(0, v_g) \\
+\end{aligned}
+$$
+
+where:
+
+- $n_{gc}$ is the observed UMI count for gene $g$ in cell $c$.
+- $\lambda_c$ is the cell-specific transcription rate.
+- $\alpha_g$ is the mean activity quotient of the gene $g$.
+- $a$ and $b$ are prior hyperparameters for the Gamma distribution.
+- $\delta_{gc}$ is the log fold-change of activity for gene $g$ in cell
+  $c$ versus the mean.
+- $v_g$ is the prior variance of the log fold-change for gene $g$.
+
+Log-normalized counts in this model are calculated as:
+
+$$y_{gc} = \langle \log{\alpha_g} + \delta_{gc} \rangle$$
+
+------------------------------------------------------------------------
+
+### `calculateSanityDistance()`
+
+``` r
+dist <- calculateSanityDistance(sce)
+```
+
+Computes the expected Euclidean distance between cells, accounting for
+measurement uncertainty:
+
+$$
+\begin{aligned}
+    d_{cc'} &= \sqrt{\sum_g \langle \delta_{gc} - \delta_{gc'} \rangle^2}  \\
+    \langle \delta_{gc} - \delta_{gc'} \rangle &\sim \text{Normal}(\Delta_g, \eta_g) \\
+    \Delta_g &\sim \text{Normal}(0, \alpha v_g) \\
+\end{aligned}
+$$
+
+where:
+
+- $d$ is the distance between cells $c$ and $c'$
+
+- $\delta_{gc}$ is the log fold-change of activity for gene $g$ in cell
+  $c$ computed by `Sanity`.
+
+- $\eta_g = \epsilon_{gc} + \epsilon_{gc'}$ is the sum of posterior
+  variances of $\delta_{gc}$.
+
+- $\Delta_g$ is the “true” distance along the dimension of gene $g$.
+
+- $\alpha$ is a hyperparameter that controls the correlation between
+  cells (0 = fully correlated, 2 = fully independent).
+
+- Based on the posterior distributions estimated by `Sanity()`.
+
+- Returns a `dist` object suitable for clustering or embedding.
+
+------------------------------------------------------------------------
+
+### Simulation Functions
+
+Provides two functions to generate synthetic datasets for benchmarking
+as those were used in the original paper:
+
+- `simulate_independent_cells()`: Simulates cells with independent gene
+  expression profiles.
+- `simulate_branched_random_walk()`: Simulates cells with tree
+  pseudo-temporal trajectories.
+
+``` r
+sce_indep <- simulate_independent_cells(N_cell = 100, N_gene = 50)
+sce_branch <- simulate_branched_random_walk(N_path = 20, length_path = 5, N_gene = 50)
+```
+
+These datasets follow the structure of `SingleCellExperiment` and are
+ready for benchmarking.
+
+------------------------------------------------------------------------
+
+## Reference
+
+Breda, J., Zavolan, M., & van Nimwegen, E. Bayesian inference of gene
+expression states from single-cell RNA-seq data. *Nature Biotechnology*,
+39, 1008–1016 (2021).
+[doi:10.1038/s41587-021-00875-x](https://doi.org/10.1038/s41587-021-00875-x)
+
+Amezquita, R.A., Lun, A.T.L., Becht, E. et al.  Orchestrating
+single-cell analysis with Bioconductor. *Nature Methods* 17, 137–145
+(2020).
+[doi:10.1038/s41592-019-0654-x](https://doi.org/10.1038/s41592-019-0654-x)
