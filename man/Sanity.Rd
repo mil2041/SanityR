@@ -17,7 +17,7 @@ Sanity(x, ...)
   nbin = 160L,
   a = 1,
   b = 0,
-  BPPARAM = SerialParam()
+  BPPARAM = bpparam()
 )
 
 \S4method{Sanity}{SummarizedExperiment}(x, ..., assay.type = "counts", name = "logcounts", subset.row = NULL)

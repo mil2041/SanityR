@@ -97,10 +97,10 @@ setGeneric("Sanity", function(x, ...) standardGeneric("Sanity"))
 
 #' @export
 #' @rdname Sanity
-#' @importFrom BiocParallel bplapply SerialParam
+#' @importFrom BiocParallel bpparam bplapply
 setMethod("Sanity", "ANY", function(x, size.factors = NULL,
                                     vmin = 0.001, vmax = 50, nbin = 160L,
-                                    a = 1, b = 0, BPPARAM = SerialParam()) {
+                                    a = 1, b = 0, BPPARAM = bpparam()) {
     stopifnot("Minimum variance must be positive" = vmin > 0)
     stopifnot("Maximum variance must be greater than the minimum" = vmax > vmin)
     stopifnot("Both Gamma parameters must be positive" = a >= 0 & b >= 0)
