@@ -159,10 +159,22 @@ setMethod("Sanity", "SummarizedExperiment", function(x, ...,
 
     res <- callNextMethod(x = assay(x, assay.type), ...) # call matrix method on assay
 
+    # Check for genes with bad fit
+    res[["entropy"]] <- -rowSums(res[["likelihood"]] * log2(res[["likelihood"]]), na.rm = TRUE)
+    res[["entropy"]] <- res[["entropy"]] / log2(ncol(res[["likelihood"]]))
+    problematic <- sum(res[["entropy"]] > .9)
+    if (problematic > 0) {
+        msg <- sprintf("There are %d genes whose posterior distribution of gene variance has high entropy (> 0.9).
+                        Consider using different range or dropping them from downstream analysis.",
+                       problematic)
+        warning(msg)
+    }
+
     # Append gene-level metrics to rowData
     rd <- DataFrame(sanity_log_activity_mean = res[["mu"]],
                     sanity_log_activity_mean_sd = sqrt(res[["var_mu"]]),
-                    sanity_activity_sd = sqrt(res[["var"]]))
+                    sanity_activity_sd = sqrt(res[["var"]]),
+                    sanity_entropy = res[["entropy"]])
     rowData(x) <- cbind(rowData(x), rd)
 
     # Add cell-level metrics as new assays
