@@ -62,7 +62,7 @@ using a hierarchical Bayesian Model:
 
 $$
 \begin{aligned}
-    n_{gc} &\sim \text{Poisson}(\lambda_c {\alpha_g}e^{\delta_{gc}}) \\
+    n_{gc} &\sim \text{Poisson}(\lambda_c \alpha_g e^{\delta_{gc}}) \\
     \lambda_c &\sim \text{Uniform}(0, \infty) \\
     \alpha_g &\sim \text{Gamma}(a, b) \\
     \delta_{gc} &\sim \text{Normal}(0, v_g) \\
@@ -97,7 +97,7 @@ measurement uncertainty:
 $$
 \begin{aligned}
     d_{cc'} &= \sqrt{\sum_g \langle \delta_{gc} - \delta_{gc'} \rangle^2}  \\
-    \langle \delta_{gc} - \delta_{gc'} \rangle &\sim \text{Normal}(\Delta_g, \eta_g) \\
+    \delta_{gc} - \delta_{gc'} &\sim \text{Normal}(\Delta_g, \eta_g) \\
     \Delta_g &\sim \text{Normal}(0, \alpha v_g) \\
 \end{aligned}
 $$
@@ -105,41 +105,36 @@ $$
 where:
 
 - $d$ is the distance between cells $c$ and $c'$
-
 - $\delta_{gc}$ is the log fold-change of activity for gene $g$ in cell
   $c$ computed by `Sanity`.
-
 - $\eta_g = \epsilon_{gc} + \epsilon_{gc'}$ is the sum of posterior
   variances of $\delta_{gc}$.
-
 - $\Delta_g$ is the “true” distance along the dimension of gene $g$.
-
 - $\alpha$ is a hyperparameter that controls the correlation between
   cells (0 = fully correlated, 2 = fully independent).
 
-- Based on the posterior distributions estimated by `Sanity()`.
-
-- Returns a `dist` object suitable for clustering or embedding.
+The function requires `Sanity()` to have been run before to estimate
+$\delta_{gc}$ and returns a `dist` object suitable for clustering or
+embedding.
 
 ------------------------------------------------------------------------
 
 ### Simulation Functions
 
 Provides two functions to generate synthetic datasets for benchmarking
-as those were used in the original paper:
+using the generative processe described in the original paper:
 
 - `simulate_independent_cells()`: Simulates cells with independent gene
   expression profiles.
-- `simulate_branched_random_walk()`: Simulates cells with tree
-  pseudo-temporal trajectories.
+- `simulate_branched_random_walk()`: Simulates cells with
+  pseudo-temporal trajectories forming a tree.
 
 ``` r
 sce_indep <- simulate_independent_cells(N_cell = 100, N_gene = 50)
 sce_branch <- simulate_branched_random_walk(N_path = 20, length_path = 5, N_gene = 50)
 ```
 
-These datasets follow the structure of `SingleCellExperiment` and are
-ready for benchmarking.
+Both functions return a `SingleCellExperiment` object.
 
 ------------------------------------------------------------------------
 
