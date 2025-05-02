@@ -11,6 +11,10 @@ Description: a Bayesian normalization procedure derived from first principles.
 License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: true
+biocViews: Software, GeneExpression, SingleCell, Normalization
+BiocType: Software
+URL: https://github.com/TeoSakel/SanityR
+BugReports: https://github.com/TeoSakel/SanityR/issues
 Imports: 
     Rcpp
 LinkingTo: Rcpp
