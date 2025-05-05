@@ -118,6 +118,22 @@ Setting \code{a = 1} and \code{b = 0} corresponds to an uninformative (uniform) 
 which was used in the original Sanity model publication.
 }
 }
+\examples{
+library(SingleCellExperiment)
+
+sce <- simulate_independent_cells(N_cell = 500, N_gene = 100)
+
+# Standard Sanity normalization
+sce_norm <- Sanity(sce)
+logcounts(sce_norm)[1:5,1:5]
+
+# Using size factors
+sf <- colSums(counts(sce))
+sizeFactors(sce) <- sf / mean(sf)
+sce_norm2 <- Sanity(sce)
+logcounts(sce_norm2)[1:5,1:5]
+
+}
 \references{
 Breda, J., Zavolan, M., & van Nimwegen, E. (2021).
 Bayesian inference of gene expression states from single-cell RNA-seq data.

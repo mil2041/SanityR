@@ -88,6 +88,21 @@
 #' Bayesian inference of gene expression states from single-cell RNA-seq data.
 #' *Nature Biotechnology*, 39, 1008–1016. \url{https://doi.org/10.1038/s41587-021-00875-x}
 #'
+#' @examples
+#' library(SingleCellExperiment)
+#'
+#' sce <- simulate_independent_cells(N_cell = 500, N_gene = 100)
+#'
+#' # Standard Sanity normalization
+#' sce_norm <- Sanity(sce)
+#' logcounts(sce_norm)[1:5,1:5]
+#'
+#' # Using size factors
+#' sf <- colSums(counts(sce))
+#' sizeFactors(sce) <- sf / mean(sf)
+#' sce_norm2 <- Sanity(sce)
+#' logcounts(sce_norm2)[1:5,1:5]
+#'
 #' @name Sanity
 NULL
 

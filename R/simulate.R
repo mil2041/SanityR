@@ -81,7 +81,6 @@ NULL
          N_gene = N_gene)
 }
 
-#' @importClassesFrom SingleCellExperiment SingleCellExperiment
 #' @importFrom SingleCellExperiment SingleCellExperiment
 #' @importFrom SummarizedExperiment assay
 #' @importFrom S4Vectors DataFrame
@@ -102,7 +101,7 @@ NULL
     # Step 3: Compute transcription rates and simulate counts
     ltq <- ltq_mean + delta - 0.5 * ltq_var  # logNormal mean = exp(mu + var/2)
     tx_rates <- exp(ltq) %*% diag(cell_size)
-        counts_matrix <- matrix(rpois(N_gene * N_cell, tx_rates), nrow = N_gene)
+    counts_matrix <- matrix(rpois(N_gene * N_cell, tx_rates), nrow = N_gene)
 
     rownames(counts_matrix) <- rownames(delta) <- paste0("Gene_", seq_len(N_gene))
     colnames(counts_matrix) <- colnames(delta) <- paste0("Cell_", seq_len(N_cell))

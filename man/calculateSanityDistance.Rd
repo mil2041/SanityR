@@ -93,7 +93,17 @@ all possible \eqn{\alpha}.
 \subsection{Single to Noise Ratio (SNR)}{
 
 \emph{Signal-to-Noise Ratio} (SNR) is defined as the ratio of the variance of
-log-normalized counts across cells versus the mean variance (i.e. error
-bars) for each genes.
+log-normalized counts across cells versus the mean variance (i.e. error bars)
+for each genes.
 }
+}
+\examples{
+sce <- simulate_branched_random_walk(N_gene = 500, N_path = 10, length_path = 10)
+sce <- Sanity(sce)  # necessary step before computing distances
+d <- calculateSanityDistance(sce)
+
+# Downstream analysis and visualization
+hc <- hclust(d, method = "ward.D2")
+plot(hc)
+
 }
