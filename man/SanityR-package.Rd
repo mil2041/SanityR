@@ -8,6 +8,14 @@
 \description{
 a Bayesian normalization procedure derived from first principles. Sanity estimates expression values and associated error bars directly from raw unique molecular identifier (UMI) counts without any tunable parameters.
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/TeoSakel/SanityR}
+  \item Report bugs at \url{https://github.com/TeoSakel/SanityR/issues}
+}
+
+}
 \author{
 \strong{Maintainer}: Teo Sakel \email{teo@intelligentbiodata.com}
 
