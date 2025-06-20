@@ -2,7 +2,7 @@ bibentry(
   bibtype  = "Article",
   key      = "Sanity",
   title    = "Bayesian inference of gene expression states from single-cell RNA-seq data",
-  author   = c("Jérémie Breda", "Mihaela Zavolan", "Erik van Nimwegen"),
+  author   = c("Jeremie Breda", "Mihaela Zavolan", "Erik van Nimwegen"),
   journal  = "Nature Biotechnology",
   year     = 2021,
   volume   = "39",
