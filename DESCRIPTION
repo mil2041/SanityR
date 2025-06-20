@@ -1,7 +1,7 @@
 Package: SanityR
 Type: Package
 Title: R/Bioconductor interface to the Sanity model gene expression analysis
-Version: 0.99.0
+Version: 0.99.1
 Authors@R: c(
     person("Teo", "Sakel", , "teo@intelligentbiodata.com", role = c("aut", "cre"))
   )
