@@ -4,7 +4,7 @@
 \name{SanityR-package}
 \alias{SanityR}
 \alias{SanityR-package}
-\title{SanityR: R/Bioconductor interface to the Sanity model gene expression analysis.}
+\title{SanityR: R/Bioconductor interface to the Sanity model gene expression analysis}
 \description{
 a Bayesian normalization procedure derived from first principles. Sanity estimates expression values and associated error bars directly from raw unique molecular identifier (UMI) counts without any tunable parameters.
 }

@@ -51,6 +51,7 @@ NULL
 
 # Internal helper for argument resolution
 # Loads default values if not provided, infers number of cells/genes, and samples sizes
+#' @importFrom utils read.table
 .resolve_simulation_inputs <- function(cell_size, gene_size, N_cell, N_gene, length_path = NULL) {
     if (is.null(cell_size)) {
         path <- system.file("extdata", "baron_cell_data.txt.gz", package = "SanityR")
@@ -84,6 +85,7 @@ NULL
 #' @importFrom SingleCellExperiment SingleCellExperiment
 #' @importFrom SummarizedExperiment assay
 #' @importFrom S4Vectors DataFrame
+#' @importFrom stats rexp rpois var
 .simulate_sce_core <- function(delta, cell_size, gene_size, ltq_var_rate) {
     # Core simulation logic
     # Shared function that computes normalized logFC, transcription rates, counts, and builds SCE
@@ -123,6 +125,7 @@ NULL
 }
 
 #' @export
+#' @importFrom stats rnorm
 simulate_independent_cells <- function(cell_size = NULL, gene_size = NULL,
                                        N_cell = NULL, N_gene = NULL,
                                        ltq_var_rate = 0.5) {
@@ -140,6 +143,7 @@ simulate_independent_cells <- function(cell_size = NULL, gene_size = NULL,
 
 #' @export
 #' @importFrom SummarizedExperiment colData colData<-
+#' @importFrom stats rnorm
 simulate_branched_random_walk <- function(cell_size = NULL, gene_size = NULL,
                                           N_gene = NULL, ltq_var_rate = 0.5,
                                           N_path = 149L, length_path = 13L) {

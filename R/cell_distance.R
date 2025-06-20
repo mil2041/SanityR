@@ -100,6 +100,7 @@ calculateSanityDistance <- function(x,
 
 #' @importFrom MatrixGenerics rowVars rowMeans2 colMeans2
 #' @importFrom BiocParallel bpparam bpmapply
+#' @importFrom utils combn
 .calculate_sanity_distance <- function(delta, epsilon, gene_var,
                                        snr_cutoff = 1, nbin = 401L,
                                        BPPARAM = bpparam()) {

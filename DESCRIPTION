@@ -1,6 +1,6 @@
 Package: SanityR
 Type: Package
-Title: R/Bioconductor interface to the Sanity model gene expression analysis.
+Title: R/Bioconductor interface to the Sanity model gene expression analysis
 Version: 0.99.0
 Authors@R: c(
     person("Teo", "Sakel", , "teo@intelligentbiodata.com", role = c("aut", "cre"))
@@ -16,8 +16,15 @@ BiocType: Software
 URL: https://github.com/TeoSakel/SanityR
 BugReports: https://github.com/TeoSakel/SanityR/issues
 Imports: 
+    Rcpp,
+    BiocGenerics,
+    BiocParallel,
+    MatrixGenerics,
+    methods,
+    S4Vectors,
+    scuttle,
     SingleCellExperiment,
-    Rcpp
+    SummarizedExperiment
 LinkingTo: Rcpp
 RoxygenNote: 7.3.2
 Roxygen: list(markdown = TRUE)

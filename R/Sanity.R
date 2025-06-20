@@ -159,6 +159,7 @@ setMethod("Sanity", "ANY", function(x, size.factors = NULL,
 
 #' @export
 #' @rdname Sanity
+#' @importFrom methods callNextMethod
 #' @importFrom S4Vectors DataFrame
 #' @importFrom SummarizedExperiment rowData rowData<- assay assay<-
 #' @importFrom scuttle .subset2index
@@ -201,6 +202,7 @@ setMethod("Sanity", "SummarizedExperiment", function(x, ...,
 #' @export
 #' @rdname Sanity
 #' @importFrom BiocGenerics sizeFactors
+#' @importFrom methods callNextMethod
 #' @importClassesFrom SingleCellExperiment SingleCellExperiment
 setMethod("Sanity", "SingleCellExperiment", function(x, size.factors = sizeFactors(x), ...) {
     callNextMethod(x = x, size.factors = size.factors, ...)
