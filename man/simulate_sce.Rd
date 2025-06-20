@@ -2,7 +2,27 @@
 % Please edit documentation in R/simulate.R
 \name{simulate_sce}
 \alias{simulate_sce}
+\alias{simulate_independent_cells}
+\alias{simulate_branched_random_walk}
 \title{Simulate SingleCellExperiment Datasets with Independent or Branched Gene Expression Patterns}
+\usage{
+simulate_independent_cells(
+  cell_size = NULL,
+  gene_size = NULL,
+  N_cell = NULL,
+  N_gene = NULL,
+  ltq_var_rate = 0.5
+)
+
+simulate_branched_random_walk(
+  cell_size = NULL,
+  gene_size = NULL,
+  N_gene = NULL,
+  ltq_var_rate = 0.5,
+  N_path = 149L,
+  length_path = 13L
+)
+}
 \arguments{
 \item{cell_size}{Optional vector of real or simulated total UMI counts per cell.
 If \code{NULL}, defaults to values from the \emph{Baron et al.} study.}
@@ -15,8 +35,6 @@ If \code{NULL}, defaults to values from the \emph{Baron et al.} study.}
 If \code{NULL} inferred from \code{cell_size}.}
 
 \item{N_gene}{Integer. Number of genes to simulate. If \code{NULL}, inferred from \code{gene_size}.}
-
-\item{seed}{Integer. Random seed for reproducibility.}
 
 \item{ltq_var_rate}{Rate parameter for the exponential distribution used to
 simulate per-gene variance (default: \code{0.5}).}

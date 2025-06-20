@@ -11,7 +11,6 @@
 #' (For `simulate_branched_random_walk` is equal to `N_path * length_path`).
 #' If `NULL` inferred from `cell_size`.
 #' @param N_gene Integer. Number of genes to simulate. If `NULL`, inferred from `gene_size`.
-#' @param seed Integer. Random seed for reproducibility.
 #' @param ltq_var_rate Rate parameter for the exponential distribution used to
 #' simulate per-gene variance (default: `0.5`).
 #' @param N_path (Only for `simulate_branched_random_walk`) Number of branching paths (default: `149`).
@@ -125,6 +124,7 @@ NULL
 }
 
 #' @export
+#' @rdname simulate_sce
 #' @importFrom stats rnorm
 simulate_independent_cells <- function(cell_size = NULL, gene_size = NULL,
                                        N_cell = NULL, N_gene = NULL,
@@ -142,6 +142,7 @@ simulate_independent_cells <- function(cell_size = NULL, gene_size = NULL,
 }
 
 #' @export
+#' @rdname simulate_sce
 #' @importFrom SummarizedExperiment colData colData<-
 #' @importFrom stats rnorm
 simulate_branched_random_walk <- function(cell_size = NULL, gene_size = NULL,
