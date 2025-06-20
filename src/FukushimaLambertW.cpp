@@ -27,6 +27,7 @@
 #include <cmath>
 #include <limits>
 #include <iostream>
+#include <Rcpp.h>
 
 using namespace std;
 
@@ -188,7 +189,7 @@ namespace Fukushima {
         return LambertWSeries(sqrt(p2));
       if (p2 == 0)
         return -1;
-      cerr << "(lambertw0) Argument out of range. z=" << z << endl;
+      Rcpp::Rcerr << "(lambertw0) Argument out of range. z=" << z << endl;
       return numeric_limits<double>::quiet_NaN();
     }
     int n;
@@ -201,7 +202,7 @@ namespace Fukushima {
       if (g[n] > z)
         goto line2;
     }
-    cerr << "(lambertw0) Argument too large. z=" << z << endl;
+    Rcpp::Rcerr << "(lambertw0) Argument too large. z=" << z << endl;
     return numeric_limits<double>::quiet_NaN();
   line2:
     {
@@ -267,7 +268,7 @@ namespace Fukushima {
       }
     }
     if (z >= 0) {
-      cerr << "(lambertwm1) Argument out of range. z=" << z << endl;
+      Rcpp::Rcerr << "(lambertwm1) Argument out of range. z=" << z << endl;
       return numeric_limits<double>::quiet_NaN();
     }
     if (z < -0.35) {
@@ -276,7 +277,7 @@ namespace Fukushima {
         return LambertWSeries(-sqrt(p2));
       if (p2 == 0)
         return -1;
-      cerr << "(lambertwm1) Argument out of range. z=" << z << endl;
+      Rcpp::Rcerr << "(lambertwm1) Argument out of range. z=" << z << endl;
       return numeric_limits<double>::quiet_NaN();
     }
     int n = 2;
@@ -287,7 +288,7 @@ namespace Fukushima {
       if (g[n - 1] > z)
         goto line2;
     }
-    cerr << "(lambertwm1) Argument too small. z=" << z << endl;
+    Rcpp::Rcerr << "(lambertwm1) Argument too small. z=" << z << endl;
     return numeric_limits<double>::quiet_NaN();
   line2:
     {
