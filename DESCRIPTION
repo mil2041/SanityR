@@ -1,9 +1,15 @@
 Package: SanityR
 Type: Package
 Title: R/Bioconductor interface to the Sanity model gene expression analysis
-Version: 0.99.1
+Version: 0.99.2
 Authors@R: c(
-    person("Teo", "Sakel", , "teo@intelligentbiodata.com", role = c("aut", "cre"))
+    person("Teo", "Sakel", 
+           email = "teo@intelligentbiodata.com", 
+           role = c("aut", "cre"),
+           comment = c(ORCID = "0000-0001-9946-9498")),
+    person("MCIU/AEI", 
+           role = c("fnd"),
+           comment = c(ROR = "05r0vyz12", DOI = "10.13039/501100011033"))
   )
 Description: a Bayesian normalization procedure derived from first principles. 
     Sanity estimates expression values and associated error bars directly from 
@@ -32,6 +38,8 @@ Suggests:
     BiocStyle,
     knitr,
     rmarkdown,
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    scater,
+    Rtsne
 Config/testthat/edition: 3
 VignetteBuilder: knitr

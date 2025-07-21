@@ -22,7 +22,24 @@ single-cell gene expression analysis. It offers tools for:
 
 ## Installation
 
+### Bioconductor installation
+
+SanityR is available on
+[Bioconductor](https://bioconductor.org/packages/SanityR/).
+
+To install this package, start R (version “4.5”) and enter:
+
+``` r
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+    
+BiocManager::install("SanityR")
+```
+
 ### GitHub installation
+
+To install the latest version from GitHub, you can use the
+[remotes](https://CRAN.R-project.org/package=remotes) package:
 
 ``` r
 remotes::install_github("TeoSakel/SanityR")

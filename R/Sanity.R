@@ -173,16 +173,20 @@ setMethod("Sanity", "SummarizedExperiment", function(x, ...,
         x <- x[subset.row, ]
     }
 
-    res <- callNextMethod(x = assay(x, assay.type), ...) # call matrix method on assay
+    res <- callNextMethod(x = assay(x, assay.type), ...)
 
     # Check for genes with bad fit
-    res[["entropy"]] <- -rowSums(res[["likelihood"]] * log2(res[["likelihood"]]), na.rm = TRUE)
-    res[["entropy"]] <- res[["entropy"]] / log2(ncol(res[["likelihood"]]))
+    res[["entropy"]] <- rowSums(res[["likelihood"]] * log2(res[["likelihood"]]),
+                                na.rm = TRUE)
+    res[["entropy"]] <- -res[["entropy"]] / log2(ncol(res[["likelihood"]]))
     problematic <- sum(res[["entropy"]] > .9)
     if (problematic > 0) {
-        msg <- sprintf("There are %d genes whose posterior distribution of gene variance has high entropy (> 0.9).
-                        Consider using different range or dropping them from downstream analysis.",
-                       problematic)
+        msg_fmt <- paste0(
+            "There are %d genes whose posterior distribution of gene variance ",
+            "has high entropy (> 0.9).\nConsider using different range or ",
+            "dropping them from downstream analysis."
+        )
+        msg <- sprintf(msg_fmt, problematic)
         warning(msg)
     }
 
@@ -195,7 +199,8 @@ setMethod("Sanity", "SummarizedExperiment", function(x, ...,
 
     # Add cell-level metrics as new assays
     assay(x, name, withDimnames = FALSE) <- with(res, mu + delta)
-    assay(x, paste0(name, "_sd"), withDimnames = FALSE) <- with(res, sqrt(var_mu + var_delta))
+    mu_sd <- with(res, sqrt(var_mu + var_delta))
+    assay(x, paste0(name, "_sd"), withDimnames = FALSE) <- mu_sd
     return(x)
 })
 
@@ -204,6 +209,7 @@ setMethod("Sanity", "SummarizedExperiment", function(x, ...,
 #' @importFrom BiocGenerics sizeFactors
 #' @importFrom methods callNextMethod
 #' @importClassesFrom SingleCellExperiment SingleCellExperiment
-setMethod("Sanity", "SingleCellExperiment", function(x, size.factors = sizeFactors(x), ...) {
+setMethod("Sanity", "SingleCellExperiment",
+          function(x, size.factors = sizeFactors(x), ...) {
     callNextMethod(x = x, size.factors = size.factors, ...)
 })

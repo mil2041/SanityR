@@ -106,10 +106,10 @@ calculateSanityDistance <- function(x,
                                        BPPARAM = bpparam()) {
     # Check validity of inputs
     stopifnot("Dimension Mismatch between mean and errorbars of delta" =
-                  all(dim(delta) == dim(epsilon)))
+              all(dim(delta) == dim(epsilon)))
     stopifnot("Delta errorbars cannot be negative" = all(epsilon >= 0))
     stopifnot("Number of rows (genes) in delta matrix must match length of gene_var" =
-                  nrow(delta) == length(gene_var))
+              nrow(delta) == length(gene_var))
     stopifnot("Gene variance cannot be negative" = all(gene_var >= 0))
     stopifnot("SNR cutoff cannot be negative" = snr_cutoff >= 0)
 
@@ -133,27 +133,11 @@ calculateSanityDistance <- function(x,
 
     Ncells <- ncol(delta)
     cell_pairs <- combn(Ncells, 2L)
+    prior_var <- outer(gene_var, alpha, "*")  # a*v_g (GxK)
 
-    get_sanity_distance <- function(i, j) {
-        x <- (delta[, i] - delta[, j])^2    # observed distance squared
-        eta <- epsilon[, i] + epsilon[, j]  # variance of observed distance assuming independent δ_{gc}
-
-        # Compute variances of true distance Δ_g
-        prior_var <- outer(gene_var, alpha, "*")  # a*v_g (GxK)
-        posterior_var <- prior_var + eta
-
-        # Compute posterior likelihood  marginalized over alpha (eq. 67 is Supp)
-        lik <- -.5 * colMeans2(x / posterior_var + log(posterior_var))  # loglik of 0-centered Gaussian
-        lik <- exp(lik - max(lik))  # for numerical stability
-        lik <- lik / sum(lik)  # assuming uniform prior over alpha
-
-        # Compute mean distance square from eq 72
-        shrinkage <- prior_var / posterior_var  # f_g(a): eq 71
-        d2 <- shrinkage * (shrinkage * x + eta)  # (f*x)^2 + f*eta^2
-        as.numeric(colMeans2(d2) %*% lik)  # Expected distance squared
-    }
-
-    d2 <- bpmapply(get_sanity_distance, cell_pairs[1L, ], cell_pairs[2L, ],
+    d2 <- bpmapply(.sanity_pair_distance, cell_pairs[1L, ], cell_pairs[2L, ],
+                   MoreArgs = list(delta = delta, epsilon = epsilon,
+                                   prior_var = prior_var),
                    SIMPLIFY = TRUE, USE.NAMES = FALSE, BPPARAM = BPPARAM)
 
     d <- structure(sqrt(d2),
@@ -162,4 +146,24 @@ calculateSanityDistance <- function(x,
                    method = "sanity", call = match.call())
     class(d) <- "dist"
     return(d)
+}
+
+.sanity_pair_distance <- function(i, j, delta, epsilon, prior_var) {
+    # observed distance squared
+    x <- (delta[, i] - delta[, j])^2
+    # variance of observed distance assuming independent δ_{gc}
+    eta <- epsilon[, i] + epsilon[, j]
+
+    # Compute variances of true distance Δ_g
+    posterior_var <- prior_var + eta
+
+    # Compute posterior likelihood  marginalized over alpha (eq. 67 is Supp)
+    lik <- -.5 * colMeans2(x / posterior_var + log(posterior_var))  # loglik of 0-centered Gaussian
+    lik <- exp(lik - max(lik))  # for numerical stability
+    lik <- lik / sum(lik)  # assuming uniform prior over alpha
+
+    # Compute mean distance square from eq 72
+    shrinkage <- prior_var / posterior_var  # f_g(a): eq 71
+    d2 <- shrinkage * (shrinkage * x + eta)  # (f*x)^2 + f*eta^2
+    as.numeric(colMeans2(d2) %*% lik)  # Expected distance squared
 }

@@ -49,17 +49,23 @@
 NULL
 
 # Internal helper for argument resolution
-# Loads default values if not provided, infers number of cells/genes, and samples sizes
+# Loads default values if not provided, infers number of cells/genes, and sizes
 #' @importFrom utils read.table
-.resolve_simulation_inputs <- function(cell_size, gene_size, N_cell, N_gene, length_path = NULL) {
+.resolve_simulation_inputs <- function(cell_size, gene_size, N_cell, N_gene,
+                                       length_path = NULL) {
     if (is.null(cell_size)) {
-        path <- system.file("extdata", "baron_cell_data.txt.gz", package = "SanityR")
-        cell_size <- read.table(gzfile(path), header = TRUE, stringsAsFactors = FALSE)$libsize
+        path <- system.file("extdata",
+                            "baron_cell_data.txt.gz",
+                            package = "SanityR")
+        DF <- read.table(gzfile(path), header = TRUE, stringsAsFactors = FALSE)
+        cell_size <- DF[["libsize"]]
     }
 
     if (is.null(gene_size)) {
-        path <- system.file("extdata", "baron_gene_data.txt.gz", package = "SanityR")
-        gene_size <- read.table(gzfile(path), header = TRUE, stringsAsFactors = FALSE)$sum
+        path <- system.file("extdata", "baron_gene_data.txt.gz",
+                            package = "SanityR")
+        DF <- read.table(gzfile(path), header = TRUE, stringsAsFactors = FALSE)
+        gene_size <- DF[["sum"]]
     }
 
     if (!is.null(N_cell) && !is.null(length_path)) {
@@ -87,7 +93,8 @@ NULL
 #' @importFrom stats rexp rpois var
 .simulate_sce_core <- function(delta, cell_size, gene_size, ltq_var_rate) {
     # Core simulation logic
-    # Shared function that computes normalized logFC, transcription rates, counts, and builds SCE
+    # Shared function that computes: normalized logFC, transcription rates,
+    #                                counts, and builds SCE
     N_gene <- nrow(delta)
     N_cell <- ncol(delta)
 
@@ -95,7 +102,7 @@ NULL
     ltq_mean <- log(gene_size / sum(gene_size))  # mu_g
     ltq_var <- rexp(N_gene, rate = ltq_var_rate) # var_g
 
-    # Step 2: Normalize logFC matrix (delta) to match gene-level variance exactly
+    # Step 2: Normalize logFC matrix (delta) to match gene-level variance
     scaling_factor <- sqrt(ltq_var / apply(delta, 1L, var))
     delta <- (delta - rowMeans(delta)) * scaling_factor
 
@@ -104,8 +111,10 @@ NULL
     tx_rates <- exp(ltq) %*% diag(cell_size)
     counts_matrix <- matrix(rpois(N_gene * N_cell, tx_rates), nrow = N_gene)
 
-    rownames(counts_matrix) <- rownames(delta) <- paste0("Gene_", seq_len(N_gene))
-    colnames(counts_matrix) <- colnames(delta) <- paste0("Cell_", seq_len(N_cell))
+    rownames(counts_matrix) <- rownames(delta) <- paste0("Gene_",
+                                                         seq_len(N_gene))
+    colnames(counts_matrix) <- colnames(delta) <- paste0("Cell_",
+                                                         seq_len(N_cell))
 
     row_data <- DataFrame(ltq_mean = ltq_mean, ltq_var = ltq_var,
                           row.names = rownames(counts_matrix))
@@ -149,7 +158,8 @@ simulate_branched_random_walk <- function(cell_size = NULL, gene_size = NULL,
                                           N_gene = NULL, ltq_var_rate = 0.5,
                                           N_path = 149L, length_path = 13L) {
     # Parse arguments
-    argv <- .resolve_simulation_inputs(cell_size, gene_size, N_path, N_gene, length_path)
+    argv <- .resolve_simulation_inputs(cell_size, gene_size,
+                                       N_path, N_gene, length_path)
     N_gene    <- argv[["N_gene"]]
     gene_size <- argv[["gene_size"]]
     N_cell    <- argv[["N_cell"]]

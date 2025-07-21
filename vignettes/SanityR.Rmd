@@ -33,6 +33,19 @@ physically meaningful quantities and their corresponding uncertainties,
 facilitating comparisons between cells and experiments. The full details of the
 method are described in the original publication and its supplementary [@sanity].
 
+# Installation 
+
+To install this package, start R (version 
+"`r paste0(R.version$major, ".", strsplit(R.version$minor, ".", fixed=TRUE)[[1]][1])`") 
+and enter: 
+
+```r
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+    
+BiocManager::install("SanityR")
+```
+
 # Quick start
 
 The basic functionality of the `r Biocpkg("SanityR")` package is to compute the
@@ -40,7 +53,10 @@ The basic functionality of the `r Biocpkg("SanityR")` package is to compute the
 It thus acts as a replacement for the `logNormCounts` from `r Biocpkg("scuttle")`
 on any other function with similar functionality.
 
-```{r quick_start, eval=FALSE}
+```{r quick_start, results='hide'}
+library(scuttle)
+library(SanityR)
+
 sce <- mockSCE()
 sce <- computeLibraryFactors(sce) # or any other method to compute size factors
 sce <- Sanity(sce)
@@ -105,7 +121,7 @@ Below we visualize the accuracy of the `Sanity` normalization method by partiall
 reproducing Figure 3A of the original publication. First, at estimating the
 overall mean and variance of a gene expression.
 
-```{r sanity_accuracy, echo=FALSE, fig.wide=TRUE, fig.cap="Gene Level Parameters. Comparison of Sanity estimates with latent values used to generate the data."}
+```{r sanity_accuracy, fig.wide=TRUE, fig.cap="Gene Level Parameters. Comparison of Sanity estimates with latent values used to generate the data."}
 par(mfrow = c(1, 2))
 plot(sanity_log_activity_mean ~ ltq_mean, data = rowData(sce),
      frame = FALSE, pch = 16, col = "#00000044", 
@@ -125,7 +141,7 @@ legend("top", legend = "y=x", col = 2, lwd = 2, lty = 2, bty = "n")
 Second, at a cell-level by calculating the correlation of latent and inferred 
 `logcounts` using different using genes of different expression level.
 
-```{r sanity_correlation, echo=FALSE, fig.cap="Cell Level Estimates. Correlation of Sanity inferred logcounts with latent logcounts using genes at different quantiles of expression."}
+```{r sanity_correlation, fig.cap="Cell Level Estimates. Correlation of Sanity inferred logcounts with latent logcounts using genes at different quantiles of expression."}
 umi_mean <- rowMeans(counts(sce))
 umi_quantiles <- quantile(umi_mean, seq(0, 1, .2))
 umi_quantiles <- cut(umi_mean, umi_quantiles, include.lowest = TRUE, labels = paste0("Q", 1:5))
@@ -148,30 +164,18 @@ the uncertainty of the estimated log normalized counts. This is implemented in
 the `calculateSanityDistance` function.
 
 Below is an example of using the distances calculated by `calculateSanityDistance`
-as input to `r CRANpkg("Rtsne")` to visualize the cells in a 2D space which 
-captures the underlying random walk structure that generated the data.
+as input to `r CRANpkg("Rtsne")` to embed the cells in a 2D space which captures 
+the underlying random walk structure that generated the data.
 
-```{r caclulate_distance}
+```{r caclulate_distance, fig.cap="t-SNE visualization using the Sanity calculated distances. Pseudotime is computed based the predecesor relations between cells.", fig.wide=TRUE}
 cell_dist <- calculateSanityDistance(sce)
-tsne <- Rtsne::Rtsne(cell_dist, is_distance = TRUE)
-```
+reducedDim(sce, "TSNE") <- Rtsne::Rtsne(cell_dist, is_distance = TRUE)$Y
 
-```{r plot_tsne, fig.cap="t-SNE visualization using the Sanity calculated distances. Pseudotime is computed based the predecesor relations between cells.", echo=FALSE, fig.wide=TRUE}
-library(ggplot2)
-
-DF <- data.frame(predecesor = sce$predecesor, depth = 0)
-for (i in 2:ncol(sce)) 
-    DF$depth[i] <- with(DF, depth[predecesor[i]] + 1)
-DF$depth <- DF$depth / max(DF$depth)
-DF <- cbind(DF, tsne$Y)
-colnames(DF) <- c("predecessor", "depth", "X", "Y")
-
-ggplot(DF, aes(X, Y)) +
-    geom_point(aes(fill = -depth), color = "#333333", shape = 21, size = 2) +
-    scale_fill_distiller(name = "Pseudotime", palette = "Reds", 
-                         breaks = c(-1, 0), labels = c("Late", "Early")) +
-    ggtitle("T-SNE using Sanity distances") +
-    theme_void() 
+# Visualize the t-SNE embedding
+sce$pseudotime <- 0
+for (i in 2:ncol(sce))  # cell 1 is the stem cell
+    sce$pseudotime[i] <- sce$pseudotime[sce$predecesor[i]] + 1
+scater::plotTSNE(sce, color_by = "pseudotime")
 ```
 
 Unlike many functions of `r Biocpkg("BiocNeighbors")`^[which compute only the `k` nearest neighbors], 
