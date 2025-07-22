@@ -79,7 +79,7 @@ test_that("Sanity() returns a valid posterior for gene variance", {
     expect_equal(rowSums(res[["likelihood"]]), rep(1, nrow(sce), ignore_attr = TRUE))
 })
 
-test_that("Sanity() produced LTQ that some to 1", {
+test_that("Sanity() produced LTQ that sum to 1", {
     # requires size factors to work so use the SCE object
     res <- sce |> Sanity() |> logcounts() |> exp() |> colSums()
     expect_equal(res, rep(1, length(res)), tolerance = .01, ignore_attr = TRUE)

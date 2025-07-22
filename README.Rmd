@@ -143,7 +143,7 @@ and returns a `dist` object suitable for clustering or embedding.
 ### Simulation Functions
 
 Provides two functions to generate synthetic datasets for benchmarking using the
-generative processe described in the original paper:
+generative process described in the original paper:
 
 - `simulate_independent_cells()`: Simulates cells with independent gene expression profiles.
 - `simulate_branched_random_walk()`: Simulates cells with pseudo-temporal trajectories forming a tree.

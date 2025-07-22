@@ -29,9 +29,9 @@ test_that("simulate_branched_random_walk returns a valid SCE with lineage graph"
     # Check that required assays exist
     expect_true(all(c("counts", "logFC") %in% assayNames(sce)))
     expect_true(all(rowSums(counts(sce)) > 0))
-    expect_lte(nrow(sce), 15)
+    expect_lte(nrow(sce), 10)
     expect_equal(ncol(sce), 3 * 5)
 
     # Check that colData contains neighbor info
-    expect_true(all(c("cell_size", "predecesor") %in% colnames(colData(sce))))
+    expect_true(all(c("cell_size", "predecessor") %in% colnames(colData(sce))))
 })

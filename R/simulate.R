@@ -21,7 +21,7 @@
 #'   \item \code{assays$counts}: Simulated UMI count matrix.
 #'   \item \code{assays$logFC}: Simulated log fold-changes for each gene-cell pair.
 #'   \item \code{rowData}: Gene-level metadata including `ltq_mean` and `ltq_var`.
-#'   \item \code{colData}: Cell-level metadata including `predecesor` for `simulated_branched_random_walk`.
+#'   \item \code{colData}: Cell-level metadata including `predecessor` for `simulated_branched_random_walk`.
 #' }
 #'
 #' @details
@@ -30,7 +30,7 @@
 #' independently for each cell. This results in uncorrelated expression patterns
 #' across the dataset.
 #'
-#' - `simulate_branched_random_walk`: cells follows a **branched random walk**
+#' - `simulate_branched_random_walk`: cells follow a **branched random walk**
 #' through gene expression space, producing correlated gene expression patterns
 #' that reflect pseudo-temporal differentiation trajectories.
 #'
@@ -167,17 +167,17 @@ simulate_branched_random_walk <- function(cell_size = NULL, gene_size = NULL,
 
     # Generate correlated expression through a branched random walk
     delta <- matrix(0, nrow = N_gene, ncol = N_cell)
-    predecesor <- integer(N_cell)
+    predecessor <- integer(N_cell)
     cell <- 1L
 
     for (k in seq_len(N_path)) {
         # Pick parent node
         if (k == 1L) { # Root
-            predecesor[cell] <- 0L
+            predecessor[cell] <- 0L
             d_0 <- rep(0, N_gene)
         } else {
-            predecesor[cell] <- sample(cell - 1L, 1L)
-            d_0 <- delta[, predecesor[cell]]
+            predecessor[cell] <- sample(cell - 1L, 1L)
+            d_0 <- delta[, predecessor[cell]]
         }
 
         # Random walk
@@ -185,15 +185,15 @@ simulate_branched_random_walk <- function(cell_size = NULL, gene_size = NULL,
             if (i == 1L) {
                 delta[, cell] <- d_0 + rnorm(N_gene)
             } else {
-                predecesor[cell] <- cell - 1L
-                delta[, cell] <- delta[, predecesor[cell]] + rnorm(N_gene)
+                predecessor[cell] <- cell - 1L
+                delta[, cell] <- delta[, predecessor[cell]] + rnorm(N_gene)
             }
             cell <- cell + 1L
         }
     }
 
     sce <- .simulate_sce_core(delta, cell_size, gene_size, ltq_var_rate)
-    colData(sce)[["predecesor"]] <- predecesor
+    colData(sce)[["predecessor"]] <- predecessor
 
     return(sce)
 }

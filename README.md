@@ -139,7 +139,7 @@ embedding.
 ### Simulation Functions
 
 Provides two functions to generate synthetic datasets for benchmarking
-using the generative processe described in the original paper:
+using the generative process described in the original paper:
 
 - `simulate_independent_cells()`: Simulates cells with independent gene
   expression profiles.

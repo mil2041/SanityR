@@ -49,7 +49,7 @@ A \code{SingleCellExperiment} object containing:
 \item \code{assays$counts}: Simulated UMI count matrix.
 \item \code{assays$logFC}: Simulated log fold-changes for each gene-cell pair.
 \item \code{rowData}: Gene-level metadata including \code{ltq_mean} and \code{ltq_var}.
-\item \code{colData}: Cell-level metadata including \code{predecesor} for \code{simulated_branched_random_walk}.
+\item \code{colData}: Cell-level metadata including \code{predecessor} for \code{simulated_branched_random_walk}.
 }
 }
 \description{
@@ -61,7 +61,7 @@ methods described in original Sanity publication for benchmarking.
 \item \code{simulate_independent_cells}: gene expression values are generated
 independently for each cell. This results in uncorrelated expression patterns
 across the dataset.
-\item \code{simulate_branched_random_walk}: cells follows a \strong{branched random walk}
+\item \code{simulate_branched_random_walk}: cells follow a \strong{branched random walk}
 through gene expression space, producing correlated gene expression patterns
 that reflect pseudo-temporal differentiation trajectories.
 }

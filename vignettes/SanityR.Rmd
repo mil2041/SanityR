@@ -93,7 +93,7 @@ sce
 Genes with no UMI in any of the cells are removed that is why the number of rows
 may be less than 1000.
 
-Besides the `logFC` assay, they following parameters are stored in the `sce` to
+Besides the `logFC` assay, the following parameters are stored in the `sce` to
 fully specify the model:
 
 - `ltq_mean`: the mean of the *log transcriptional activity*, defined as the 
@@ -167,14 +167,14 @@ Below is an example of using the distances calculated by `calculateSanityDistanc
 as input to `r CRANpkg("Rtsne")` to embed the cells in a 2D space which captures 
 the underlying random walk structure that generated the data.
 
-```{r caclulate_distance, fig.cap="t-SNE visualization using the Sanity calculated distances. Pseudotime is computed based the predecesor relations between cells.", fig.wide=TRUE}
+```{r calculate_distance, fig.cap="t-SNE visualization using the Sanity calculated distances. Pseudotime is computed based the predecessor relations between cells.", fig.wide=TRUE}
 cell_dist <- calculateSanityDistance(sce)
 reducedDim(sce, "TSNE") <- Rtsne::Rtsne(cell_dist, is_distance = TRUE)$Y
 
 # Visualize the t-SNE embedding
 sce$pseudotime <- 0
 for (i in 2:ncol(sce))  # cell 1 is the stem cell
-    sce$pseudotime[i] <- sce$pseudotime[sce$predecesor[i]] + 1
+    sce$pseudotime[i] <- sce$pseudotime[sce$predecessor[i]] + 1
 scater::plotTSNE(sce, color_by = "pseudotime")
 ```
 

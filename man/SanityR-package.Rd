@@ -17,7 +17,12 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Teo Sakel \email{teo@intelligentbiodata.com}
+\strong{Maintainer}: Teo Sakel \email{teo@intelligentbiodata.com} (\href{https://orcid.org/0000-0001-9946-9498}{ORCID})
+
+Other contributors:
+\itemize{
+  \item MCIU/AEI (\href{https://ror.org/05r0vyz12}{ROR}, \href{https://doi.org/10.13039/501100011033}{DOI}) [funder]
+}
 
 }
 \keyword{internal}
