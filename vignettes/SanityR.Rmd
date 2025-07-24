@@ -16,31 +16,33 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r setup, include = FALSE}
+```{r setup, include=FALSE}
 knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>",
-  warning = FALSE, message = FALSE
+    collapse=TRUE, 
+    comment="#>", 
+    warning=FALSE, 
+    message=FALSE
 )
 ```
 
 # Introduction
 
-Sanity (SAmpling-Noise-corrected Inference of Transcription activitY) 
-provides a biophysics-inspired normalization method for single-cell RNA-seq data.
-It uses a Bayesian framework with minimal number of assumptions in order to model 
+Sanity (SAmpling-Noise-corrected Inference of Transcription activitY) provides a
+biophysics-inspired normalization method for single-cell RNA-seq data. It uses a
+Bayesian framework with minimal number of assumptions in order to model
 physically meaningful quantities and their corresponding uncertainties,
 facilitating comparisons between cells and experiments. The full details of the
-method are described in the original publication and its supplementary [@sanity].
+method are described in the original publication and its supplementary
+[@sanity].
 
 # Installation 
 
 To install this package, start R (version 
-"`r paste0(R.version$major, ".", strsplit(R.version$minor, ".", fixed=TRUE)[[1]][1])`") 
+"`r paste0(R.version$major, ".", strsplit(R.version$minor, "\\.")[[1]][1])`") 
 and enter: 
 
 ```r
-if (!requireNamespace("BiocManager", quietly = TRUE))
+if (!requireNamespace("BiocManager", quietly=TRUE))
     install.packages("BiocManager")
     
 BiocManager::install("SanityR")
@@ -49,9 +51,9 @@ BiocManager::install("SanityR")
 # Quick start
 
 The basic functionality of the `r Biocpkg("SanityR")` package is to compute the
-`logcounts` assay from UMI `counts` of a `r Biocpkg("SingleCellExperiment")` object.
-It thus acts as a replacement for the `logNormCounts` from `r Biocpkg("scuttle")`
-on any other function with similar functionality.
+`logcounts` assay from UMI `counts` of a `r Biocpkg("SingleCellExperiment")`
+object. It thus acts as a replacement for the `logNormCounts` from 
+`r Biocpkg("scuttle")` on any other function with similar functionality.
 
 ```{r quick_start, results='hide'}
 library(scuttle)
@@ -75,18 +77,21 @@ walk. The number of cells, genes and the other prior parameters are tuned to
 match the dataset generated in [@baron]. Here we down-sample the number of genes
 and cells for speed.
 
-`r Biocpkg("SanityR")` is designed to work with the `r Biocpkg("SingleCellExperiment")` 
-class and thus the simulation methods return a `SingleCellExperiment` object.
-The latent ("true") log normalized counts are stored in the `logFC` assay so as 
-to not interfere with the `logcounts` assay.
+`r Biocpkg("SanityR")` is designed to work with the 
+`r Biocpkg("SingleCellExperiment")` class and thus the simulation methods return 
+a `SingleCellExperiment` object. The latent ("true") log normalized counts are
+stored in the `logFC` assay so as to not interfere with the `logcounts` assay.
 
 ```{r simulate}
 library(SingleCellExperiment)
 library(SanityR)
 
 set.seed(42)
-sce <- simulate_branched_random_walk(N_gene = 1000, 
-                                     N_path = 10, length_path = 12)
+sce <- simulate_branched_random_walk(
+    N_gene=1000,  
+    N_path=10, 
+    length_path=12
+)
 sce
 ```
 
@@ -97,12 +102,12 @@ Besides the `logFC` assay, the following parameters are stored in the `sce` to
 fully specify the model:
 
 - `ltq_mean`: the mean of the *log transcriptional activity*, defined as the 
-  quotient of the number of molecules transcribed from each gene versus the total 
-  number of molecules in the cell.
+    quotient of the number of molecules transcribed from each gene versus the
+    total number of molecules in the cell.
 - `ltq_var`: the variance of the log transcriptional activity.
 - `cell_size`: the total number of molecules in the cell.
 - `predecessor`: the index of the cell that precedes of the current cell in the 
-  random walk. Thus if `predecessor[n] == m`, then $m \to n$ in the random walk.
+    random walk. Thus if `predecessor[n] == m`, then $m \to n$ in the random walk.
 
 # Running Sanity normalization
 
@@ -117,25 +122,37 @@ sce <- Sanity(sce)
 sce
 ```
 
-Below we visualize the accuracy of the `Sanity` normalization method by partially 
-reproducing Figure 3A of the original publication. First, at estimating the
-overall mean and variance of a gene expression.
+Below we visualize the accuracy of the `Sanity` normalization method by
+partially reproducing Figure 3A of the original publication. First, at
+estimating the overall mean and variance of a gene expression.
 
 ```{r sanity_accuracy, fig.wide=TRUE, fig.cap="Gene Level Parameters. Comparison of Sanity estimates with latent values used to generate the data."}
-par(mfrow = c(1, 2))
-plot(sanity_log_activity_mean ~ ltq_mean, data = rowData(sce),
-     frame = FALSE, pch = 16, col = "#00000044", 
-     xlab = "Mean UMI counts",  ylab = "Sanity Estimate", 
-     main = "Mean Log Transcriptional Activity")
-abline(0, 1, col = 2, lwd = 2, lty = 2)
-legend("top", legend = "y=x", col = 2, lwd = 2, lty = 2, bty = "n")
+par(mfrow=c(1, 2))
+plot(
+    sanity_log_activity_mean ~ ltq_mean, 
+    data=rowData(sce),
+    frame=FALSE, 
+    pch=16, 
+    col="#00000044", 
+    xlab="Mean UMI counts",  
+    ylab="Sanity Estimate", 
+    main="Mean Log Transcriptional Activity"
+)
+abline(0, 1, col=2, lwd=2, lty=2)
+legend("top", legend="y=x", col=2, lwd=2, lty=2, bty="n")
 
-plot(sanity_activity_sd^2  ~ ltq_var, data = rowData(sce), log = "xy",
-     frame = FALSE, pch = 16, col = "#00000044", 
-     xlab = "True LTQ Variance",  ylab = "Sanity Estimate", 
-     main = "Variance of Log Transcriptional Activity")
-abline(0, 1, col = 2, lwd = 2, lty = 2)
-legend("top", legend = "y=x", col = 2, lwd = 2, lty = 2, bty = "n")
+plot(
+    sanity_activity_sd^2  ~ ltq_var, data=rowData(sce), 
+    log="xy",
+    frame=FALSE, 
+    pch=16, 
+    col="#00000044", 
+    xlab="True LTQ Variance",  
+    ylab="Sanity Estimate", 
+    main="Variance of Log Transcriptional Activity"
+)
+abline(0, 1, col=2, lwd=2, lty=2)
+legend("top", legend="y=x", col=2, lwd=2, lty=2, bty="n")
 ```
 
 Second, at a cell-level by calculating the correlation of latent and inferred 
@@ -144,14 +161,27 @@ Second, at a cell-level by calculating the correlation of latent and inferred
 ```{r sanity_correlation, fig.cap="Cell Level Estimates. Correlation of Sanity inferred logcounts with latent logcounts using genes at different quantiles of expression."}
 umi_mean <- rowMeans(counts(sce))
 umi_quantiles <- quantile(umi_mean, seq(0, 1, .2))
-umi_quantiles <- cut(umi_mean, umi_quantiles, include.lowest = TRUE, labels = paste0("Q", 1:5))
-rho <- vapply(split(1:nrow(sce), umi_quantiles), function(ix) {
-        sce_q <- sce[ix,]
-        diag(cor(assay(sce_q, "logFC"), logcounts(sce_q)))
-}, rep(0, ncol(sce))) 
-boxplot(rho, frame = FALSE, 
-        main = "Correlation between latent and inferred logcounts",
-        xlab = "Quantiles of Mean UMI Count", ylab = "Pearson Correlation")
+umi_quantiles <- cut( 
+    umi_mean, 
+    umi_quantiles, 
+    include.lowest=TRUE, 
+    labels=paste0("Q", 1:5)
+)
+rho <- sapply(
+    split(1:nrow(sce), umi_quantiles), 
+    function(ix) { 
+        sce_q <- sce[ix,] 
+        diag(cor(assay(sce_q, "logFC"), logcounts(sce_q))) 
+    } 
+)
+
+boxplot(
+    rho, 
+    frame=FALSE, 
+    main="Correlation between latent and inferred logcounts", 
+    xlab="Quantiles of Mean UMI Count", 
+    ylab="Pearson Correlation"
+)
 ```
 
 # Compute cell distances
@@ -159,31 +189,33 @@ boxplot(rho, frame = FALSE,
 The `logcounts` calculated by `Sanity` can be used for downstream analyses. 
 Typically, these analyses involve computing distances between cells which can be
 done by using the functions that `r Biocpkg("BiocNeighbors")` provides. However, 
-`r Biocpkg("SanityR")` provides a more principled approach that takes into account
-the uncertainty of the estimated log normalized counts. This is implemented in 
-the `calculateSanityDistance` function.
+`r Biocpkg("SanityR")` provides a more principled approach that takes into
+account the uncertainty of the estimated log normalized counts. This is
+implemented in the `calculateSanityDistance` function.
 
-Below is an example of using the distances calculated by `calculateSanityDistance`
-as input to `r CRANpkg("Rtsne")` to embed the cells in a 2D space which captures 
-the underlying random walk structure that generated the data.
+Below is an example of using the distances calculated by
+`calculateSanityDistance` as input to `r CRANpkg("Rtsne")` to embed the cells in
+a 2D space which captures the underlying random walk structure that generated
+the data.
 
 ```{r calculate_distance, fig.cap="t-SNE visualization using the Sanity calculated distances. Pseudotime is computed based the predecessor relations between cells.", fig.wide=TRUE}
 cell_dist <- calculateSanityDistance(sce)
-reducedDim(sce, "TSNE") <- Rtsne::Rtsne(cell_dist, is_distance = TRUE)$Y
+reducedDim(sce, "TSNE") <- Rtsne::Rtsne(cell_dist, is_distance=TRUE)$Y
 
 # Visualize the t-SNE embedding
 sce$pseudotime <- 0
 for (i in 2:ncol(sce))  # cell 1 is the stem cell
     sce$pseudotime[i] <- sce$pseudotime[sce$predecessor[i]] + 1
-scater::plotTSNE(sce, color_by = "pseudotime")
+scater::plotTSNE(sce, color_by="pseudotime")
 ```
 
-Unlike many functions of `r Biocpkg("BiocNeighbors")`^[which compute only the `k` nearest neighbors], 
-`calculateSanityDistance` computes *all* the pairwise distances and thus is more 
-resource intensive, both in terms of memory and time. To ease the computational 
-burden, the user can limit the number of genes involved in the calculations by 
-filtering only the highly variable ones. `calculateSanityDistance` uses the 
-signal-to-noise ratio (`snr_cutoff`) internally to filter the genes.
+Unlike many functions of `r Biocpkg("BiocNeighbors")`^[which compute only the
+`k` nearest neighbors], `calculateSanityDistance` computes *all* the pairwise
+distances and thus is more resource intensive, both in terms of memory and time.
+To ease the computational burden, the user can limit the number of genes
+involved in the calculations by filtering only the highly variable ones.
+`calculateSanityDistance` uses the signal-to-noise ratio (`snr_cutoff`)
+internally to filter the genes.
 
 # References {.unnumbered}
 
