@@ -128,7 +128,10 @@ setMethod("Sanity", "ANY", function(x, size.factors=NULL,
     # Extract matrix stats
     C <- ncol(x)
     G <- nrow(x)
-    mean_cell_size <- mean(colSums(x))
+
+    # fix the bug for sce
+    # mean_cell_size <- mean(colSums(x))
+    mean_cell_size <- mean(colSums(counts(x)))
 
     # Compute cell_sizes: N_c
     if (is.null(size.factors))
