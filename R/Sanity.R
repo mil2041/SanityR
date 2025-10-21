@@ -129,13 +129,19 @@ setMethod("Sanity", "ANY", function(x, size.factors=NULL,
     C <- ncol(x)
     G <- nrow(x)
 
-    x_class<-class(x)
-    message(sprintf("class: %s",x_class))
+    #x_class<-class(x)
+    #message(sprintf("class: %s",x_class))
   
     # fix the bug for sce
-    mean_cell_size <- mean(colSums(x))
+    #mean_cell_size <- mean(colSums(x))
     #mean_cell_size <- mean(colSums(counts(x)))
 
+    if (inherits(x, "sparseMatrix")) {
+        mean_cell_size <- mean(Matrix::colSums(x))
+    } else {
+        mean_cell_size <- mean(colSums(x))
+    }
+  
     # Compute cell_sizes: N_c
     if (is.null(size.factors))
         size.factors <- rep(1, C)
@@ -145,7 +151,10 @@ setMethod("Sanity", "ANY", function(x, size.factors=NULL,
     results <- bplapply(
         seq_len(G),
         function(g) get_gene_expression_level(
-            counts=x[g, ],
+
+            #fix this for dgCMatrix class
+            #counts=x[g, ],
+            counts=as.numeric(x[g,]),
             cell_size=cell_size,
             vmin=vmin,
             vmax=vmax,
