@@ -129,9 +129,12 @@ setMethod("Sanity", "ANY", function(x, size.factors=NULL,
     C <- ncol(x)
     G <- nrow(x)
 
+    x_class<-class(x)
+    message(sprintf("class: %s",x_class))
+  
     # fix the bug for sce
-    # mean_cell_size <- mean(colSums(x))
-    mean_cell_size <- mean(colSums(counts(x)))
+    mean_cell_size <- mean(colSums(x))
+    #mean_cell_size <- mean(colSums(counts(x)))
 
     # Compute cell_sizes: N_c
     if (is.null(size.factors))
